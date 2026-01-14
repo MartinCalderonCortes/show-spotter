@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import noShowLogo from './assets/images/no-img-portrait-text.webp';
 import ErrorMessage from './componets/ErrorMessage';
@@ -19,7 +19,10 @@ function App() {
   const [showDetail, setShowDetail] = useState<ShowDetail | null>(null);
   const [page, setPage] = useState(0);
 
+  const sentinelRef = useRef(null)
+
   const handleSearch = (term: string) => {
+    if (!term) setPage(0);
     setSearch(term);
   };
 
@@ -62,9 +65,23 @@ function App() {
 
   const closeModal = () => setShowDetail(null);
 
-  const handleNextShows = () => {
-    setPage((currentPage) => currentPage + 1)
-  }
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || view !== 'search' || search !== '' || loading || error) return
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setPage((prevPage) => prevPage + 1)
+      }
+    }, { threshold: 1.0 })
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [view, search, loading, error]);
+
 
   useEffect(() => {
     const storedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -73,7 +90,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (initialized) {  
+    if (initialized) {
       localStorage.setItem('favorites', JSON.stringify(favorites))
     }
   }, [favorites, initialized])
@@ -101,7 +118,7 @@ function App() {
         } else {
           const url = `https://api.tvmaze.com/shows?page=${page}`;
           const response = await fetch(url);
-          if (response.ok) throw new Error("Failed fetching shows. Please try again");
+          if (!response.ok) throw new Error("Failed fetching shows. Please try again");
           const shows = await response.json();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const showsMapped = shows.map((show: any) => ({
@@ -141,17 +158,10 @@ function App() {
         </button>
         <button className={`tab text-lg ${view === 'favorites' ? 'tab-active' : ''}`} onClick={() => setView('favorites')}>Favorites ({favorites.length})</button>
       </div>
+
       {view === 'search' && <SearchBar onSearch={handleSearch} />}
 
-      {loading && <Spinner />}
-
-      {error && <ErrorMessage message={error} />}
-
-      {!loading && !error && displayedShows.length === 0 &&
-        <p>No shows found. {view === 'search' ? 'Try a different search' : 'Add some to your favorites'}</p>
-      }
-
-      {!loading && !error && displayedShows.length > 0 &&
+      {displayedShows.length > 0 &&
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full'>
           {displayedShows.map((show) => (
             <ShowCard
@@ -161,9 +171,17 @@ function App() {
               isFavorite={isFavorite(show.id)}
               openModal={() => openModal(show.id)} />
           ))}
-        </div>}
+          <div ref={sentinelRef} style={{ visibility: 'hidden' }} />
+        </div>
+      }
 
-      {!loading && !error && view === 'search' && search === '' && <button className='btn btn-success m-4' type="button" onClick={handleNextShows}>More shows</button>}
+      {loading && <Spinner />}
+
+      {!loading && !error && displayedShows.length === 0 &&
+        <p>No shows found. {view === 'search' ? 'Try a different search' : 'Add some to your favorites'}</p>
+      }
+
+      {error && <ErrorMessage message={error} />}
 
       {showDetail && (
         <ShowDetailModal
