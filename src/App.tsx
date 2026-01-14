@@ -17,6 +17,7 @@ function App() {
   const [error, setError] = useState<null | string>(null);
   const [view, setView] = useState<View>('search');
   const [showDetail, setShowDetail] = useState<ShowDetail | null>(null);
+  const [page, setPage] = useState(0);
 
   const handleSearch = (term: string) => {
     setSearch(term);
@@ -37,7 +38,7 @@ function App() {
     setError(null)
     try {
       const response = await fetch(`https://api.tvmaze.com/shows/${showId}`);
-      if (!response.ok) throw new Error('Failed fetching shows details')
+      if (!response.ok) throw new Error('Failed fetching shows details. Please try again.')
       const json = await response.json();
       const { name, image, rating, genres, summary, schedule, network, id } = json;
 
@@ -53,56 +54,26 @@ function App() {
       }
       setShowDetail(showDetail);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.log(error)
-      throw new Error("Unncontrolled error");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+      setError(message);
     }
   }
 
   const closeModal = () => setShowDetail(null);
 
+  const handleNextShows = () => {
+    setPage((currentPage) => currentPage + 1)
+  }
+
   useEffect(() => {
-    const fetchInitialShows = async () => {
-      const storedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-      setFavorites(storedFavorites);
-      setInitialized(true);
-      setLoading(true);
-      setError(null);
-
-      try {
-        const url = `https://api.tvmaze.com/shows?page=0`
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Error fetching initial shows");
-        const shows = await response.json();
-        console.log('SHOWS', shows);
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any        
-        const showsMapped = shows.map((show: any) => {
-          const { name, image, rating, genres, summary, id } = show;
-          const showObject: Show = {
-            id,
-            title: name,
-            image: image !== null ? image.medium : noShowLogo,
-            rating: rating.average ?? 'N/A',
-            genres: genres.length > 0 ? genres.join(', ') : 'N/A',
-            summary
-          }
-          return showObject
-        })
-        setShows(showsMapped)
-      } catch (error) {
-        console.log(error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchInitialShows()
+    const storedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    setFavorites(storedFavorites);
+    setInitialized(true);
   }, [])
 
   useEffect(() => {
-    if (initialized) {
+    if (initialized) {  
       localStorage.setItem('favorites', JSON.stringify(favorites))
     }
   }, [favorites, initialized])
@@ -112,47 +83,53 @@ function App() {
       setLoading(true);
       setError(null);
       try {
-        let url;
         if (search) {
-          // url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(search)}`
-          url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(search)}`
+          const url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(search)}`;
           const response = await fetch(url);
-          if (!response.ok) throw new Error('Network failed, try again')
-          const json = await response.json()
+          if (!response.ok) throw new Error(`Failed fetching show related with '${search}' search. Please try again`);
+          const json = await response.json();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const showsMapped = json.map(({ show }: { show: any }) => {
-            const { name, image, rating, genres, summary, id } = show;
-            const showObject: Show = {
-              id,
-              title: name,
-              image: image !== null ? image.medium : noShowLogo,
-              rating: rating.average ?? 'N/A',
-              genres: genres.length > 0 ? genres.join(', ') : 'N/A',
-              summary
-            }
-            return showObject
-          })
-          console.log(showsMapped)
-          setShows(showsMapped)
+          const showsMapped = json.map(({ show }: { show: any }) => ({
+            id: show.id,
+            title: show.name,
+            image: show.image !== null ? show.image.medium : noShowLogo,
+            rating: show.rating.average ?? 'N/A',
+            genres: show.genres.length > 0 ? show.genres.join(', ') : 'N/A',
+            summary: show.summary
+          }));
+          setShows(showsMapped);
+        } else {
+          const url = `https://api.tvmaze.com/shows?page=${page}`;
+          const response = await fetch(url);
+          if (response.ok) throw new Error("Failed fetching shows. Please try again");
+          const shows = await response.json();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const showsMapped = shows.map((show: any) => ({
+            id: show.id,
+            title: show.name,
+            image: show.image !== null ? show.image.medium : noShowLogo,
+            rating: show.rating.average ?? 'N/A',
+            genres: show.genres.length > 0 ? show.genres.join(', ') : 'N/A',
+            summary: show.summary
+          }));
+          setShows((prevShows) => page === 0 ? showsMapped : prevShows.concat(showsMapped));
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        console.log(error)
-        setError(error.message)
-        throw new Error(error?.message);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+        setError(message);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     fetchShows();
-  }, [search, view])
+  }, [search, page]);
 
   const displayedShows = view === 'search' ? shows : favorites;
 
   return (
     <div className='container mx-auto p-4 flex flex-col items-center'>
-      <h1 className='text-3xl font-extrabold mb-6 drop-shadow-2xl'>Show Spotter: TV Show Search & Favorites App</h1>
+      <h1 className='text-3xl font-bold mb-6 drop-shadow-2xl'>Show Spotter: TV Show Search & Favorites App</h1>
       <div className='tabs tabs-border mb-6'>
         <button
           className={`tab text-lg ${view === 'search' ? 'tab-active' : ''}`}
@@ -185,6 +162,8 @@ function App() {
               openModal={() => openModal(show.id)} />
           ))}
         </div>}
+
+      {!loading && !error && view === 'search' && search === '' && <button className='btn btn-success m-4' type="button" onClick={handleNextShows}>More shows</button>}
 
       {showDetail && (
         <ShowDetailModal
