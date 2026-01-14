@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
-import noShowLogo from './assets/images/no-img-portrait-text.webp';
 import ErrorMessage from './componets/ErrorMessage';
 import SearchBar from './componets/SearchBar';
 import ShowCard from './componets/ShowCard';
 import ShowDetailModal from './componets/ShowDetailModal';
 import Spinner from './componets/Spinner';
+import { searchShowByDetail, searchShowsByPage, searchShowsBySearch } from './services/shows';
 import type { Show, ShowDetail, View } from './types';
 
 function App() {
@@ -18,7 +18,6 @@ function App() {
   const [view, setView] = useState<View>('search');
   const [showDetail, setShowDetail] = useState<ShowDetail | null>(null);
   const [page, setPage] = useState(0);
-
   const sentinelRef = useRef(null)
 
   const handleSearch = (term: string) => {
@@ -40,21 +39,7 @@ function App() {
   const openModal = async (showId: number) => {
     setError(null)
     try {
-      const response = await fetch(`https://api.tvmaze.com/shows/${showId}`);
-      if (!response.ok) throw new Error('Failed fetching shows details. Please try again.')
-      const json = await response.json();
-      const { name, image, rating, genres, summary, schedule, network, id } = json;
-
-      const showDetail: ShowDetail = {
-        id,
-        title: name,
-        image: image !== null ? image.original : noShowLogo,
-        rating: rating.average ?? 'N/A',
-        genres: genres.length > 0 ? genres.join(' | ') : 'N/A',
-        summary,
-        schedule: schedule !== null ? `${schedule.days.join(' ')} at ${schedule.time}` : 'N/A',
-        networkInfo: network !== null ? network.name : 'N/A'
-      }
+      const showDetail = await searchShowByDetail(showId)
       setShowDetail(showDetail);
 
     } catch (error: unknown) {
@@ -101,35 +86,11 @@ function App() {
       setError(null);
       try {
         if (search) {
-          const url = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(search)}`;
-          const response = await fetch(url);
-          if (!response.ok) throw new Error(`Failed fetching show related with '${search}' search. Please try again`);
-          const json = await response.json();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const showsMapped = json.map(({ show }: { show: any }) => ({
-            id: show.id,
-            title: show.name,
-            image: show.image !== null ? show.image.medium : noShowLogo,
-            rating: show.rating.average ?? 'N/A',
-            genres: show.genres.length > 0 ? show.genres.join(', ') : 'N/A',
-            summary: show.summary
-          }));
-          setShows(showsMapped);
+          const showsBySearch = await searchShowsBySearch(search)
+          setShows(showsBySearch);
         } else {
-          const url = `https://api.tvmaze.com/shows?page=${page}`;
-          const response = await fetch(url);
-          if (!response.ok) throw new Error("Failed fetching shows. Please try again");
-          const shows = await response.json();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const showsMapped = shows.map((show: any) => ({
-            id: show.id,
-            title: show.name,
-            image: show.image !== null ? show.image.medium : noShowLogo,
-            rating: show.rating.average ?? 'N/A',
-            genres: show.genres.length > 0 ? show.genres.join(', ') : 'N/A',
-            summary: show.summary
-          }));
-          setShows((prevShows) => page === 0 ? showsMapped : prevShows.concat(showsMapped));
+          const showsByPage = await searchShowsByPage(page);
+          setShows((prevShows) => page === 0 ? showsByPage : prevShows.concat(showsByPage));
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'An unexpected error occurred';
