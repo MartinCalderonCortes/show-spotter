@@ -22,7 +22,7 @@ const ShowDetailModal = ({ show, onClose, isFavorite, onToggleFavorite }: ShowDe
         />
         {/* Description */}
         <div className="text-left space-y-2">
-          <p className="leading-relaxed">{show.summary}</p>
+          <p className="leading-relaxed" dangerouslySetInnerHTML={{ __html: show.summary}}></p>
           <p className="font-semibold">
             <span>Rating</span> {show.rating}
           </p>

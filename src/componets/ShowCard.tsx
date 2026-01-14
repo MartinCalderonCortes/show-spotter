@@ -26,10 +26,8 @@ const ShowCard = ({ show, onToggleFavorite, isFavorite, openModal }: ShowCardPro
                 <h2 className="text-xl font-bold text-amber-50">{title}</h2>
                 <p className="text-amber-50">{rating}</p>
                 <p className="text-amber-50">{genres}</p>
-                <p className="text-gray-300">
-                    {summary ? `${summary.substring(3, 20)}...` : "N/A"}
-                </p>
-                <div className="flex gap-2">
+                <p className="text-gray-300" dangerouslySetInnerHTML={{ __html: summary}}></p>
+                <div className="flex gap-2 m-2">
                     <button
                         className="btn btn-sm btn-primary"
                         onClick={openModal}

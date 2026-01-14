@@ -1,5 +1,8 @@
+import DOMPurify from 'dompurify';
+
 import noShowLogo from '../assets/images/no-img-portrait-text.webp';
 import type { Show, ShowDetail } from '../types';
+
 
 export const searchShowsBySearch = async (search: string) => {
     try {
@@ -14,7 +17,7 @@ export const searchShowsBySearch = async (search: string) => {
             image: show.image !== null ? show.image.medium : noShowLogo,
             rating: show.rating.average ?? 'N/A',
             genres: show.genres.length > 0 ? show.genres.join(', ') : 'N/A',
-            summary: show.summary
+            summary: `${sanitizeHTML(show.summary).substring(0, 30)}...`
         }));
 
         return showsMapped
@@ -38,7 +41,7 @@ export const searchShowsByPage = async (page: number) => {
             image: show.image !== null ? show.image.medium : noShowLogo,
             rating: show.rating.average ?? 'N/A',
             genres: show.genres.length > 0 ? show.genres.join(', ') : 'N/A',
-            summary: show.summary
+            summary: `${sanitizeHTML(show.summary).substring(0, 30)}...`
         }));
 
         return showsMapped;
@@ -62,7 +65,7 @@ export const searchShowByDetail = async (showId: number) => {
             image: image !== null ? image.original : noShowLogo,
             rating: rating.average ?? 'N/A',
             genres: genres.length > 0 ? genres.join(' | ') : 'N/A',
-            summary,
+            summary: sanitizeHTML(summary),
             schedule: schedule !== null ? `${schedule.days.join(' ')} at ${schedule.time}` : 'N/A',
             networkInfo: network !== null ? network.name : 'N/A'
         }
@@ -73,3 +76,8 @@ export const searchShowByDetail = async (showId: number) => {
         throw new Error('Error searching show detail');
     }
 }
+
+const sanitizeHTML = (html: string | null): string => {
+  if (!html) return '';
+  return DOMPurify.sanitize(html);
+};
