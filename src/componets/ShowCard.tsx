@@ -23,9 +23,9 @@ const ShowCard = ({ show, onToggleFavorite, isFavorite, openModal }: ShowCardPro
             </figure>
             {/* Overlay */}
             <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 duration-300 flex flex-col justify-end items-center p-4">
-                <h2 className="text-xl font-bold">{title}</h2>
-                <p>{rating}</p>
-                <p>{genres}</p>
+                <h2 className="text-xl font-bold text-amber-50">{title}</h2>
+                <p className="text-amber-50">{rating}</p>
+                <p className="text-amber-50">{genres}</p>
                 <p className="text-gray-300">
                     {summary ? `${summary.substring(3, 20)}...` : "N/A"}
                 </p>
