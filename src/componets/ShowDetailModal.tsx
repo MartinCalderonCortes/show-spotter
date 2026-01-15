@@ -11,7 +11,7 @@ const ShowDetailModal = ({ show, onClose, isFavorite, onToggleFavorite }: ShowDe
 
   return (
     <dialog className="modal modal-open">
-      <div className="modal-box w-full max-w-2xl sm:max-w-3xl bg-base-100 shadow-xl">
+      <section className="modal-box w-full max-w-2xl sm:max-w-3xl bg-base-100 shadow-xl">
         <h3 className="font-bold text-xl sm:text-2xl mb-4 text-center">{show.title}</h3>
         {/* Poster */}
         <img
@@ -21,18 +21,20 @@ const ShowDetailModal = ({ show, onClose, isFavorite, onToggleFavorite }: ShowDe
           loading="eager"
         />
         {/* Description */}
-        <div className="text-left space-y-2">
-          <p className="leading-relaxed" dangerouslySetInnerHTML={{ __html: show.summary}}></p>
+        <article className="text-left space-y-2">
+          <p className="leading-relaxed" dangerouslySetInnerHTML={{ __html: show.summary }}></p>
           <p className="font-semibold">
-            <span>Rating</span> {show.rating}
+            <span>Rating:</span> {show.rating} 
           </p>
           <p>
             <span>Genres:</span>{" "}
             {show.genres}
           </p>
-        </div>
+          <p><span>Schedule:</span>{" "}{show.schedule}</p>
+          <p><span>Web channel:</span>{" "}{show.networkInfo}</p>
+        </article>
         {/* Buttons */}
-        <div className="flex flex-wrap gap-3 justify-end mt-6">
+        <footer className="flex flex-wrap gap-3 justify-end mt-6">
           <button
             onClick={onToggleFavorite}
             className={`btn ${isFavorite ? "btn-error" : "btn-secondary"}`}
@@ -42,8 +44,8 @@ const ShowDetailModal = ({ show, onClose, isFavorite, onToggleFavorite }: ShowDe
           <button className="btn" onClick={onClose}>
             Close
           </button>
-        </div>
-      </div>
+        </footer>
+      </section>
       {/* Modal Backdrop */}
       <div className="modal-backdrop" onClick={onClose}></div>
     </dialog>
