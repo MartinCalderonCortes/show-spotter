@@ -1,73 +1,31 @@
-# React + TypeScript + Vite
+# ShowSpotter – TV Show Search & Favorites App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React-based web application that allows users to search for TV shows, view detailed information, and manage a personalized favorites list. Built with modern web technologies for a seamless user experience.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Show Search**: Search for TV shows by title using the TVMaze API
+- **Pagination & Infinite Scroll**: Automatically load more shows as you scroll to the bottom
+- **Show Details Modal**: Click on any show to view comprehensive information including synopsis, ratings, genres, schedule, and network details
+- **Favorites Management**: Add or remove shows from your favorites list with persistent storage using localStorage
+- **Responsive Design**: Fully responsive grid layout that adapts to different screen sizes
+- **HTML Sanitization**: Secure handling of API-provided HTML content to prevent XSS attacks
 
-## React Compiler
+## Technologies & Libraries
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+### Core Framework
+- **React 19** – UI library with Hooks for state management
+- **TypeScript** – Type-safe development
+- **Vite** – Fast build tool with HMR (Hot Module Replacement)
 
-## Expanding the ESLint configuration
+### Styling
+- **Tailwind CSS** – Utility-first CSS framework
+- **DaisyUI** – Pre-built Tailwind components
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### API & Data
+- **TVMaze API** – TV show data source
+- **Fetch API** – HTTP requests
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Security & Utilities
+- **DOMPurify** – HTML sanitization to prevent XSS attacks
+- **ESLint** – Code quality and consistency
