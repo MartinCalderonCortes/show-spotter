@@ -17,7 +17,7 @@ export const searchShowsBySearch = async (search: string) => {
             image: show.image !== null ? show.image.medium : noShowLogo,
             rating: show.rating.average ?? 'N/A',
             genres: show.genres.length > 0 ? show.genres.join(', ') : 'N/A',
-            summary: `${sanitizeHTML(show.summary).substring(0, 30)}...`
+            summary: sanitizeHTML(show.summary)
         }));
 
         return showsMapped
@@ -41,7 +41,7 @@ export const searchShowsByPage = async (page: number) => {
             image: show.image !== null ? show.image.medium : noShowLogo,
             rating: show.rating.average ?? 'N/A',
             genres: show.genres.length > 0 ? show.genres.join(', ') : 'N/A',
-            summary: `${sanitizeHTML(show.summary).substring(0, 30)}...`
+            summary: sanitizeHTML(show.summary)
         }));
 
         return showsMapped;
